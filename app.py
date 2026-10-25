@@ -1,6 +1,6 @@
-"""谁暖了冬季个人站 - Flask 后端 V1.1"""
+﻿"""璋佹殩浜嗗啲瀛ｄ釜浜虹珯 - Flask 鍚庣 V1.1"""
 from flask import Flask, request, jsonify, send_from_directory, session, redirect
-from flask_cors import CORS
+
 import sqlite3, hashlib, os, secrets, urllib.request, urllib.parse, json
 from datetime import datetime
 
@@ -8,9 +8,9 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__, static_folder=BASE, static_url_path='')
 app.secret_key = secrets.token_hex(16)
 app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024  # 20MB
-CORS(app, supports_credentials=True)
 
-# ===== GitHub OAuth 配置（申请完填这里）=====
+
+# ===== GitHub OAuth 閰嶇疆锛堢敵璇峰畬濉繖閲岋級=====
 GITHUB_CLIENT_ID = os.environ.get('GITHUB_CLIENT_ID', 'Ov23liu9SSPzzokG7NmP')
 GITHUB_CLIENT_SECRET = os.environ.get('GITHUB_CLIENT_SECRET', '540d05e6edc9f2d526da53b4174a549d7ad9344c')
 GITHUB_CALLBACK = 'http://127.0.0.1:5000/auth/github/callback'
@@ -31,7 +31,7 @@ def init_db():
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       uid INTEGER NOT NULL,
       title TEXT NOT NULL,
-      cat TEXT DEFAULT '默认',
+      cat TEXT DEFAULT '榛樿',
       content TEXT NOT NULL,
       excerpt TEXT,
       date TEXT NOT NULL
@@ -53,8 +53,7 @@ def init_db():
       date TEXT NOT NULL
     );
     ''')
-    # 兼容旧库：加 sort 列
-    try: c.execute('ALTER TABLE posts ADD COLUMN sort INTEGER DEFAULT 0')
+    # 鍏煎鏃у簱锛氬姞 sort 鍒?    try: c.execute('ALTER TABLE posts ADD COLUMN sort INTEGER DEFAULT 0')
     except: pass
     c.commit(); c.close()
 
@@ -68,11 +67,11 @@ def register():
     try:
         c = sqlite3.connect(DB)
         c.execute('INSERT INTO users(email,nick,pwd) VALUES(?,?,?)',
-                  (d['email'], d.get('nick','微光'), hash_pwd(d['pwd'])))
+                  (d['email'], d.get('nick','寰厜'), hash_pwd(d['pwd'])))
         c.commit(); c.close()
         return jsonify(ok=True)
     except Exception as e:
-        return jsonify(ok=False, msg='邮箱已注册' if 'UNIQUE' in str(e) else str(e)), 400
+        return jsonify(ok=False, msg='閭宸叉敞鍐? if 'UNIQUE' in str(e) else str(e)), 400
 
 @app.route('/api/login', methods=['POST'])
 def login():
@@ -81,7 +80,7 @@ def login():
     r = c.execute('SELECT id,nick FROM users WHERE email=? AND pwd=?',
                   (d['email'], hash_pwd(d['pwd']))).fetchone()
     c.close()
-    if not r: return jsonify(ok=False, msg='账号或密码错误'), 401
+    if not r: return jsonify(ok=False, msg='璐﹀彿鎴栧瘑鐮侀敊璇?), 401
     session['uid'] = r[0]; session['nick'] = r[1]
     return jsonify(ok=True, nick=r[1])
 
@@ -102,14 +101,13 @@ def github_login():
 @app.route('/auth/github/callback')
 def github_callback():
     code = request.args.get('code')
-    # 换 token
+    # 鎹?token
     data = urllib.parse.urlencode({'client_id':GITHUB_CLIENT_ID,'client_secret':GITHUB_CLIENT_SECRET,'code':code}).encode()
     req = urllib.request.Request('https://github.com/login/oauth/access_token', data=data, headers={'Accept':'application/json'})
     token = json.loads(urllib.request.urlopen(req).read())['access_token']
-    # 拉用户信息
-    req = urllib.request.Request('https://api.github.com/user', headers={'Authorization':'token '+token, 'User-Agent':'glowden-blog'})
+    # 鎷夌敤鎴蜂俊鎭?    req = urllib.request.Request('https://api.github.com/user', headers={'Authorization':'token '+token, 'User-Agent':'glowden-blog'})
     u = json.loads(urllib.request.urlopen(req).read())
-    # 自动注册/登录
+    # 鑷姩娉ㄥ唽/鐧诲綍
     c = sqlite3.connect(DB)
     email = u.get('email') or (u['login']+'@github.local')
     r = c.execute('SELECT id,nick FROM users WHERE email=?',(email,)).fetchone()
@@ -121,7 +119,7 @@ def github_callback():
     session['uid']=r[0]; session['nick']=r[1]; session['avatar']=u.get('avatar_url','')
     return redirect('/')
 
-# 文章 CRUD
+# 鏂囩珷 CRUD
 @app.route('/api/posts')
 def list_posts():
     c = sqlite3.connect(DB)
@@ -142,7 +140,7 @@ def add_post():
     d = request.json
     c = sqlite3.connect(DB)
     c.execute('INSERT INTO posts(uid,title,cat,content,excerpt,date) VALUES(?,?,?,?,?,?)',
-              (1,d['title'],d.get('cat','默认'),d['content'],d.get('excerpt',''),datetime.now().strftime('%Y-%m-%d')))
+              (1,d['title'],d.get('cat','榛樿'),d['content'],d.get('excerpt',''),datetime.now().strftime('%Y-%m-%d')))
     c.commit(); c.close()
     return jsonify(ok=True)
 
@@ -158,7 +156,7 @@ def update_post(pid):
     d = request.json
     c = sqlite3.connect(DB)
     c.execute('UPDATE posts SET title=?,cat=?,content=?,excerpt=? WHERE id=?',
-              (d['title'],d.get('cat','默认'),d['content'],d.get('excerpt',''),pid))
+              (d['title'],d.get('cat','榛樿'),d['content'],d.get('excerpt',''),pid))
     c.commit(); c.close()
     return jsonify(ok=True)
 
@@ -170,8 +168,7 @@ def reorder_post(pid):
     c.commit(); c.close()
     return jsonify(ok=True)
 
-# 空间动态
-@app.route('/api/moments')
+# 绌洪棿鍔ㄦ€?@app.route('/api/moments')
 def get_moments():
     c = sqlite3.connect(DB)
     rows = c.execute('SELECT id,text,media,type,date FROM moments ORDER BY id DESC').fetchall()
@@ -194,7 +191,7 @@ def del_moment(mid):
     c.commit(); c.close()
     return jsonify(ok=True)
 
-# 评论
+# 璇勮
 @app.route('/api/comments/<ttype>/<tid>')
 def get_comments(ttype,tid):
     c = sqlite3.connect(DB)
@@ -204,15 +201,15 @@ def get_comments(ttype,tid):
 
 @app.route('/api/comments', methods=['POST'])
 def add_comment():
-    if 'uid' not in session: return jsonify(ok=False,msg='请先登录'),401
+    if 'uid' not in session: return jsonify(ok=False,msg='璇峰厛鐧诲綍'),401
     d = request.json
     c = sqlite3.connect(DB)
     c.execute('INSERT INTO comments(target_type,target_id,nick,avatar,content,date) VALUES(?,?,?,?,?,?)',
-              (d['ttype'],d['tid'],session.get('nick','微光'),session.get('avatar',''),d['content'],datetime.now().strftime('%Y-%m-%d %H:%M')))
+              (d['ttype'],d['tid'],session.get('nick','寰厜'),session.get('avatar',''),d['content'],datetime.now().strftime('%Y-%m-%d %H:%M')))
     c.commit(); c.close()
     return jsonify(ok=True)
 
-# 页面路由
+# 椤甸潰璺敱
 @app.route('/')
 def home(): return send_from_directory(BASE,'index.html')
 
@@ -221,7 +218,7 @@ if __name__ == '__main__':
     if os.name == 'nt':
         ngrok_path = r'C:\ngrok\ngrok.exe'
         subprocess.Popen([ngrok_path, 'http', '5000'], creationflags=0x08000000)
-        print('正在启动 ngrok...')
+        print('姝ｅ湪鍚姩 ngrok...')
         time.sleep(5)
         pub_url = ''
         for _ in range(5):
@@ -231,5 +228,5 @@ if __name__ == '__main__':
                     pub_url = data['tunnels'][0]['public_url']
                     break
             except: time.sleep(1)
-        print(f'公网: {pub_url}')
+        print(f'鍏綉: {pub_url}')
     app.run(host='0.0.0.0', port=5000, debug=True)
