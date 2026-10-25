@@ -217,26 +217,19 @@ def add_comment():
 def home(): return send_from_directory(BASE,'index.html')
 
 if __name__ == '__main__':
-    import subprocess, time, urllib.request, json
-    # 自动启动 ngrok
-    ngrok_path = r'C:\ngrok\ngrok.exe'
-    subprocess.Popen([ngrok_path, 'http', '5000'], creationflags=0x08000000)
-    print('正在启动 ngrok...')
-    time.sleep(5)
-    # 读取公网地址
-    pub_url = ''
-    for _ in range(5):
-        try:
-            with urllib.request.urlopen('http://127.0.0.1:4040/api/tunnels') as r:
-                data = json.loads(r.read())
-                pub_url = data['tunnels'][0]['public_url']
-                break
-        except: time.sleep(1)
-    print(f'''
-  ╔══════════════════════════════════════╗
-  ║  谁暖了冬季 · 个人站 V1.3 后端      ║
-  ║  本机: http://127.0.0.1:5000        ║
-  ║  公网: {pub_url:<28}║
-  ╚══════════════════════════════════════╝
-    ''')
+    import subprocess, time, urllib.request, json, os
+    if os.name == 'nt':
+        ngrok_path = r'C:\ngrok\ngrok.exe'
+        subprocess.Popen([ngrok_path, 'http', '5000'], creationflags=0x08000000)
+        print('正在启动 ngrok...')
+        time.sleep(5)
+        pub_url = ''
+        for _ in range(5):
+            try:
+                with urllib.request.urlopen('http://127.0.0.1:4040/api/tunnels') as r:
+                    data = json.loads(r.read())
+                    pub_url = data['tunnels'][0]['public_url']
+                    break
+            except: time.sleep(1)
+        print(f'公网: {pub_url}')
     app.run(host='0.0.0.0', port=5000, debug=True)
