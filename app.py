@@ -53,7 +53,8 @@ def init_db():
       date TEXT NOT NULL
     );
     ''')
-    # 鍏煎鏃у簱锛氬姞 sort 鍒?    try: c.execute('ALTER TABLE posts ADD COLUMN sort INTEGER DEFAULT 0')
+    # 兼容旧数据库：加 sort 列
+    try: c.execute('ALTER TABLE posts ADD COLUMN sort INTEGER DEFAULT 0')
     except: pass
     c.commit(); c.close()
 
@@ -71,7 +72,7 @@ def register():
         c.commit(); c.close()
         return jsonify(ok=True)
     except Exception as e:
-        return jsonify(ok=False, msg='閭宸叉敞鍐? if 'UNIQUE' in str(e) else str(e)), 400
+        return jsonify(ok=False, msg='用户名已存在' if 'UNIQUE' in str(e) else str(e)), 400
 
 @app.route('/api/login', methods=['POST'])
 def login():
@@ -80,7 +81,7 @@ def login():
     r = c.execute('SELECT id,nick FROM users WHERE email=? AND pwd=?',
                   (d['email'], hash_pwd(d['pwd']))).fetchone()
     c.close()
-    if not r: return jsonify(ok=False, msg='璐﹀彿鎴栧瘑鐮侀敊璇?), 401
+    if not r: return jsonify(ok=False, msg='账号或密码错误'), 401
     session['uid'] = r[0]; session['nick'] = r[1]
     return jsonify(ok=True, nick=r[1])
 
@@ -201,7 +202,7 @@ def get_comments(ttype,tid):
 
 @app.route('/api/comments', methods=['POST'])
 def add_comment():
-    if 'uid' not in session: return jsonify(ok=False,msg='璇峰厛鐧诲綍'),401
+    if 'uid' not in session: return jsonify(ok=False,msg='请先登录'),401
     d = request.json
     c = sqlite3.connect(DB)
     c.execute('INSERT INTO comments(target_type,target_id,nick,avatar,content,date) VALUES(?,?,?,?,?,?)',
