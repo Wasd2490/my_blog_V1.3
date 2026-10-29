@@ -70,13 +70,32 @@
 ## 本地运行
 
 ```bash
-pip install flask flask-cors
+pip install flask
 python app.py
 ```
 
 浏览器打开 http://127.0.0.1:5000
 
 启动后自动拉起 ngrok，控制台会打印公网地址。
+
+## 服务器部署（腾讯云 Ubuntu）
+
+- 服务器：腾讯云轻量应用服务器，Ubuntu
+- 公网 IP：106.52.34.17
+- 端口：5000
+- 部署目录：`~/my_blog_V1.3`
+- 启动命令：`python3 app.py`
+- GitHub OAuth 回调：`http://106.52.34.17:5000/auth/github/callback`
+- Python：Python 3 自带 sqlite3，只需 `pip3 install flask`
+
+```bash
+# 服务器首次部署
+cd ~
+unzip my_blog_V1.3.zip -d my_blog_V1.3
+cd my_blog_V1.3
+pip3 install flask
+python3 app.py
+```
 
 ## 技术栈
 
