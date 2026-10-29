@@ -2,6 +2,12 @@
 
 **线上地址：** http://106.52.34.17:5000（腾讯云轻量服务器） | https://xue12.pythonanywhere.com（备用）
 
+## V1.3.2 修复（2026-10-29）
+
+- 修复 GitHub OAuth 回调 500 错误：获取用户信息的 req 被注释吞掉
+- 修复 GitHub OAuth 回调地址写死 127.0.0.1，改为环境变量可配置
+- 修复 index.html 直接调 GitHub API 导致 CORS，统一走后端代理
+
 ## V1.3.1 修复（2026-10-29）
 
 - 修复 GitHub API 浏览器 CORS 问题：新增后端通用代理 `/api/github-proxy?url=...`
