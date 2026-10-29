@@ -169,7 +169,7 @@ def reorder_post(pid):
     c.commit(); c.close()
     return jsonify(ok=True)
 
-# 绌洪棿鍔ㄦ€?@app.route('/api/moments')
+@app.route('/api/moments')
 def get_moments():
     c = sqlite3.connect(DB)
     rows = c.execute('SELECT id,text,media,type,date FROM moments ORDER BY id DESC').fetchall()
