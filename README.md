@@ -1,5 +1,14 @@
 # 谁暖了冬季 · 个人博客站 V1.3
 
+**线上地址：** http://106.52.34.17:5000（腾讯云轻量服务器） | https://xue12.pythonanywhere.com（备用）
+
+## V1.3.1 修复（2026-10-29）
+
+- 修复 GitHub API 浏览器 CORS 问题：新增后端通用代理 `/api/github-proxy?url=...`
+- 修复 `/api/moments` 路由被注释吞掉导致 404
+- 部署到腾讯云 Ubuntu 服务器
+- 新增 `/api/github/repos` 和 `/api/github/readme/<repo>` 备用接口
+
 ## V1.3 更新（2026-10-25）
 
 - 博客文章改后端 SQLite 存储，发文章/删文章/编辑都走 API
