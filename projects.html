@@ -109,7 +109,7 @@ async function fetchJSON(url){
 
 async function loadReadme(owner,repo){
   try{
-    const d=await fetchJSON(`https://api.github.com/repos/${owner}/${repo}/readme`);
+    const d=await fetchJSON(`/api/github-proxy?url=https://api.github.com/repos/${owner}/${repo}/readme`);
     const text=decodeURIComponent(escape(atob(d.content.replace(/\n/g,''))));
     return marked.parse(text);
   }catch(e){return '<p style="color:#656d76">暂无 README</p>';}
@@ -117,20 +117,20 @@ async function loadReadme(owner,repo){
 
 async function loadCommits(owner,repo){
   try{
-    const cs=await fetchJSON(`https://api.github.com/repos/${owner}/${repo}/commits?per_page=5`);
+    const cs=await fetchJSON(`/api/github-proxy?url=https://api.github.com/repos/${owner}/${repo}/commits?per_page=5`);
     return cs.map(c=>({date:c.commit.author.date.slice(0,10),msg:c.commit.message.split('\n')[0]})).slice(0,5);
   }catch(e){return [];}
 }
 
 async function loadPath(owner,repo,path=''){
   try{
-    const d=await fetchJSON(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`);
+    const d=await fetchJSON(`/api/github-proxy?url=https://api.github.com/repos/${owner}/${repo}/contents/${path}`);
     return Array.isArray(d)?d:[d];
   }catch(e){return [];}
 }
 async function loadFile(owner,repo,path){
   try{
-    const d=await fetchJSON(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`);
+    const d=await fetchJSON(`/api/github-proxy?url=https://api.github.com/repos/${owner}/${repo}/contents/${path}`);
     if(d.type==='file'&&d.content){
       return decodeURIComponent(escape(atob(d.content.replace(/\n/g,''))));
     }
@@ -150,7 +150,7 @@ async function main(){
   // 列表
   const list=document.getElementById('repoList');
   try{
-    const repos=await fetchJSON(`https://api.github.com/users/${GH_USER}/repos?sort=updated&per_page=20`);
+    const repos=await fetchJSON(`/api/github-proxy?url=https://api.github.com/users/${GH_USER}/repos?sort=updated&per_page=20`);
     if(!repos.length){list.innerHTML='<div class="loading">GitHub 上还没有公开仓库</div>';return;}
     list.innerHTML='';
     for(const r of repos){
@@ -182,7 +182,7 @@ async function renderDetail(repoName){
   const box=document.getElementById('repoDetail');
   box.innerHTML='<div class="loading">加载仓库…</div>';
   try{
-    const r=await fetchJSON(`https://api.github.com/repos/${GH_USER}/${repoName}`);
+    const r=await fetchJSON(`/api/github-proxy?url=https://api.github.com/repos/${GH_USER}/${repoName}`);
     box.innerHTML=`
       <div class="repo" style="margin-top:16px">
         <div class="repo-head" style="cursor:default">

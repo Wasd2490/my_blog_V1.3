@@ -211,6 +211,43 @@ def add_comment():
     return jsonify(ok=True)
 
 # 椤甸潰璺敱
+# GitHub API proxy (CORS fix) - universal proxy
+@app.route('/api/github-proxy')
+def github_proxy():
+    target = request.args.get('url', '')
+    if not target.startswith('https://api.github.com/') and not target.startswith('https://raw.githubusercontent.com/'):
+        return 'bad url', 400
+    req = urllib.request.Request(target, headers={
+        'User-Agent': 'Wasd2490-blog',
+        'Accept': 'application/vnd.github.v3+json'
+    })
+    try:
+        data = urllib.request.urlopen(req, timeout=15).read()
+        return app.response_class(data, mimetype='application/json')
+    except Exception as e:
+        return jsonify(error=str(e)), 502
+
+@app.route('/api/github/repos')
+def github_repos():
+    url = 'https://api.github.com/users/Wasd2490/repos?sort=updated&per_page=20'
+    req = urllib.request.Request(url, headers={'User-Agent': 'Wasd2490-blog', 'Accept': 'application/vnd.github.v3+json'})
+    try:
+        data = urllib.request.urlopen(req, timeout=10).read()
+        return app.response_class(data, mimetype='application/json')
+    except Exception:
+        return jsonify([]), 502
+
+@app.route('/api/github/readme/<repo>')
+def github_readme(repo):
+    for branch in ['main', 'master']:
+        url = f'https://raw.githubusercontent.com/Wasd2490/{repo}/{branch}/README.md'
+        req = urllib.request.Request(url, headers={'User-Agent': 'Wasd2490-blog'})
+        try:
+            data = urllib.request.urlopen(req, timeout=10).read().decode('utf-8')
+            return app.response_class(data, mimetype='text/plain; charset=utf-8')
+        except: pass
+    return app.response_class('# no README', mimetype='text/plain; charset=utf-8')
+
 @app.route('/')
 def home(): return send_from_directory(BASE,'index.html')
 
