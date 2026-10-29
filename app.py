@@ -13,7 +13,7 @@ app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024  # 20MB
 # ===== GitHub OAuth 閰嶇疆锛堢敵璇峰畬濉繖閲岋級=====
 GITHUB_CLIENT_ID = os.environ.get('GITHUB_CLIENT_ID', 'Ov23liu9SSPzzokG7NmP')
 GITHUB_CLIENT_SECRET = os.environ.get('GITHUB_CLIENT_SECRET', '540d05e6edc9f2d526da53b4174a549d7ad9344c')
-GITHUB_CALLBACK = 'http://127.0.0.1:5000/auth/github/callback'
+GITHUB_CALLBACK = os.environ.get('GITHUB_CALLBACK', 'http://106.52.34.17:5000/auth/github/callback')
 # ===============================================
 
 DB = os.path.join(BASE, 'site.db')
