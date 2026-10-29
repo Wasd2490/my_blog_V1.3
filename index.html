@@ -325,7 +325,7 @@ const CFG=JSON.parse(localStorage.getItem('glowden_home_cfg')||'{}');
 async function loadProjCard(){
   let repos=[];
   try{
-    const r=await fetch('https://api.github.com/users/Wasd2490/repos?sort=updated&per_page=20');
+    const r=await fetch('/api/github-proxy?url=https://api.github.com/users/Wasd2490/repos?sort=updated&per_page=20');
     repos=await r.json();
     localStorage.setItem('glowden_repos',JSON.stringify(repos));
   }catch(e){try{repos=JSON.parse(localStorage.getItem('glowden_repos')||'[]');}catch(e2){}}
@@ -351,7 +351,7 @@ document.getElementById('cfgBtn').onclick=async()=>{
   rs.innerHTML='<option value="">— 自动选最新更新 —</option><option>加载中…</option>';
   let repos=[];
   try{
-    const r=await fetch('https://api.github.com/users/Wasd2490/repos?sort=updated&per_page=20');
+    const r=await fetch('/api/github-proxy?url=https://api.github.com/users/Wasd2490/repos?sort=updated&per_page=20');
     repos=await r.json();
     localStorage.setItem('glowden_repos',JSON.stringify(repos));
   }catch(e){try{repos=JSON.parse(localStorage.getItem('glowden_repos')||'[]');}catch(e2){}}
