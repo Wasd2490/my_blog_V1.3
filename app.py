@@ -106,7 +106,8 @@ def github_callback():
     data = urllib.parse.urlencode({'client_id':GITHUB_CLIENT_ID,'client_secret':GITHUB_CLIENT_SECRET,'code':code}).encode()
     req = urllib.request.Request('https://github.com/login/oauth/access_token', data=data, headers={'Accept':'application/json'})
     token = json.loads(urllib.request.urlopen(req).read())['access_token']
-    # 鎷夌敤鎴蜂俊鎭?    req = urllib.request.Request('https://api.github.com/user', headers={'Authorization':'token '+token, 'User-Agent':'glowden-blog'})
+    # get user info
+    req = urllib.request.Request('https://api.github.com/user', headers={'Authorization':'token '+token, 'User-Agent':'Wasd2490-blog'})
     u = json.loads(urllib.request.urlopen(req).read())
     # 鑷姩娉ㄥ唽/鐧诲綍
     c = sqlite3.connect(DB)
