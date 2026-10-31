@@ -9,6 +9,13 @@ app = Flask(__name__, static_folder=BASE, static_url_path='')
 app.secret_key = secrets.token_hex(16)
 app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024  # 20MB
 
+# 强制所有 HTML 响应使用 UTF-8 编码
+@app.after_request
+def add_charset(response):
+    if response.content_type.startswith('text/html'):
+        response.headers['Content-Type'] = 'text/html; charset=utf-8'
+    return response
+
 
 # ===== GitHub OAuth 閰嶇疆锛堢敵璇峰畬濉繖閲岋級=====
 GITHUB_CLIENT_ID = os.environ.get('GITHUB_CLIENT_ID', 'Ov23liu9SSPzzokG7NmP')
