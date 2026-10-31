@@ -283,5 +283,118 @@ async function loadTree(repoDiv,owner,repo,path=''){
 }
 main();
 </script>
-<script>if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js")}</script></body>
+<script>if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js")}</script>
+<!-- 🎵 音乐播放器 -->
+<div id="music-player" style="position:fixed;bottom:24px;right:24px;z-index:9999;font-family:'Noto Sans SC',sans-serif;">
+  <!-- 播放列表弹窗 -->
+  <div id="playlist-popup" style="display:none;position:absolute;bottom:72px;right:0;width:260px;background:rgba(255,255,255,0.97);backdrop-filter:blur(12px);border-radius:16px;box-shadow:0 8px 32px rgba(255,107,157,0.25);padding:14px;margin-bottom:8px;">
+    <div style="font-size:14px;font-weight:600;margin-bottom:10px;color:#e14b7e;">🎵 我的歌单</div>
+    <div id="playlist-items"></div>
+  </div>
+
+  <!-- 进度条 -->
+  <div style="position:absolute;bottom:66px;right:4px;width:52px;height:4px;background:rgba(0,0,0,0.1);border-radius:2px;overflow:hidden;">
+    <div id="progress-fill" style="width:0%;height:100%;background:linear-gradient(90deg,#ff6b9d,#e14b7e);transition:width 0.3s;"></div>
+  </div>
+
+  <!-- 主按钮组 -->
+  <div style="display:flex;align-items:center;gap:8px;">
+    <!-- 上一首 -->
+    <button onclick="playPrev()" style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.95);border:none;color:#e14b7e;font-size:15px;cursor:pointer;box-shadow:0 2px 10px rgba(255,107,157,0.2);display:flex;align-items:center;justify-content:center;">⏮</button>
+    
+    <!-- 播放/暂停 -->
+    <button onclick="togglePlay()" style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#ff6b9d,#e14b7e);border:none;color:#fff;font-size:20px;cursor:pointer;box-shadow:0 4px 20px rgba(255,107,157,0.4);display:flex;align-items:center;justify-content:center;transition:transform 0.2s;">▶</button>
+    
+    <!-- 下一首 -->
+    <button onclick="playNext()" style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.95);border:none;color:#e14b7e;font-size:15px;cursor:pointer;box-shadow:0 2px 10px rgba(255,107,157,0.2);display:flex;align-items:center;justify-content:center;">⏭</button>
+    
+    <!-- 播放列表按钮 -->
+    <button onclick="togglePlaylist()" style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.95);border:none;color:#e14b7e;font-size:13px;cursor:pointer;box-shadow:0 2px 8px rgba(255,107,157,0.2);margin-left:4px;">☰</button>
+  </div>
+
+  <audio id="audio-player"></audio>
+</div>
+
+<script>
+// 歌单 - 替换成你自己的音乐链接
+var playlist = [
+  { title: '无间渡', url: '/assets/music/1.mp3' },
+  { title: '你要的全拿走', url: '/assets/music/2.mp3' },
+  { title: '忘不掉的你', url: '/assets/music/3.mp3' },
+  { title: '把回忆拼好给你', url: '/assets/music/4.mp3' }
+];
+var currentIndex = 0;
+var isPlaying = false;
+var audio = document.getElementById('audio-player');
+var playBtn = document.querySelector('#music-player button[onclick="togglePlay()"]');
+
+// 渲染播放列表
+function renderPlaylist() {
+  var html = '';
+  for (var i = 0; i < playlist.length; i++) {
+    html += '<div onclick="selectTrack(' + i + ')" style="padding:8px 10px;border-radius:8px;cursor:pointer;font-size:13px;color:' + (i === currentIndex ? '#e14b7e' : '#666') + ';background:' + (i === currentIndex ? 'rgba(255,107,157,0.1)' : 'transparent') + ';margin-bottom:2px;">' + playlist[i].title + '</div>';
+  }
+  document.getElementById('playlist-items').innerHTML = html;
+}
+
+function loadTrack(index) {
+  currentIndex = index;
+  audio.src = playlist[currentIndex].url;
+  renderPlaylist();
+  if (isPlaying) {
+    audio.play();
+  }
+}
+
+function togglePlay() {
+  if (isPlaying) {
+    audio.pause();
+    playBtn.innerHTML = '▶';
+  } else {
+    audio.play();
+    playBtn.innerHTML = '⏸';
+  }
+  isPlaying = !isPlaying;
+}
+
+function playNext() {
+  loadTrack((currentIndex + 1) % playlist.length);
+  if (!isPlaying) togglePlay();
+}
+
+function playPrev() {
+  loadTrack((currentIndex - 1 + playlist.length) % playlist.length);
+  if (!isPlaying) togglePlay();
+}
+
+function selectTrack(index) {
+  loadTrack(index);
+  if (!isPlaying) togglePlay();
+  document.getElementById('playlist-popup').style.display = 'none';
+}
+
+function togglePlaylist() {
+  var popup = document.getElementById('playlist-popup');
+  popup.style.display = popup.style.display === 'none' ? 'block' : 'none';
+}
+
+// 进度条更新
+audio.addEventListener('timeupdate', function() {
+  if (audio.duration) {
+    var percent = (audio.currentTime / audio.duration) * 100;
+    document.getElementById('progress-fill').style.width = percent + '%';
+  }
+});
+
+// 自动下一首
+audio.addEventListener('ended', function() {
+  playNext();
+});
+
+// 初始化
+loadTrack(0);
+renderPlaylist();
+</script>
+
+</body>
 </html>
