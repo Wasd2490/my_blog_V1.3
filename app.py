@@ -1,4 +1,4 @@
-﻿"""璋佹殩浜嗗啲瀛ｄ釜浜虹珯 - Flask 鍚庣 V1.1"""
+﻿"""谁暖了冬季 - 个人博客站 Flask 后端 V1.3"""
 from flask import Flask, request, jsonify, send_from_directory, session, redirect
 
 import sqlite3, hashlib, os, secrets, urllib.request, urllib.parse, json
@@ -17,7 +17,7 @@ def add_charset(response):
     return response
 
 
-# ===== GitHub OAuth 閰嶇疆锛堢敵璇峰畬濉繖閲岋級=====
+# ===== GitHub OAuth 配置（申请完填这里）=====
 GITHUB_CLIENT_ID = os.environ.get('GITHUB_CLIENT_ID', 'Ov23liu9SSPzzokG7NmP')
 GITHUB_CLIENT_SECRET = os.environ.get('GITHUB_CLIENT_SECRET', '540d05e6edc9f2d526da53b4174a549d7ad9344c')
 GITHUB_CALLBACK = os.environ.get('GITHUB_CALLBACK', 'http://106.52.34.17:5000/auth/github/callback')
@@ -38,7 +38,7 @@ def init_db():
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       uid INTEGER NOT NULL,
       title TEXT NOT NULL,
-      cat TEXT DEFAULT '榛樿',
+      cat TEXT DEFAULT '默认',
       content TEXT NOT NULL,
       excerpt TEXT,
       date TEXT NOT NULL
@@ -75,7 +75,7 @@ def register():
     try:
         c = sqlite3.connect(DB)
         c.execute('INSERT INTO users(email,nick,pwd) VALUES(?,?,?)',
-                  (d['email'], d.get('nick','寰厜'), hash_pwd(d['pwd'])))
+                  (d['email'], d.get('nick','微光'), hash_pwd(d['pwd'])))
         c.commit(); c.close()
         return jsonify(ok=True)
     except Exception as e:
@@ -109,14 +109,14 @@ def github_login():
 @app.route('/auth/github/callback')
 def github_callback():
     code = request.args.get('code')
-    # 鎹?token
+    # 获取 token
     data = urllib.parse.urlencode({'client_id':GITHUB_CLIENT_ID,'client_secret':GITHUB_CLIENT_SECRET,'code':code}).encode()
     req = urllib.request.Request('https://github.com/login/oauth/access_token', data=data, headers={'Accept':'application/json'})
     token = json.loads(urllib.request.urlopen(req).read())['access_token']
     # get user info
     req = urllib.request.Request('https://api.github.com/user', headers={'Authorization':'token '+token, 'User-Agent':'Wasd2490-blog'})
     u = json.loads(urllib.request.urlopen(req).read())
-    # 鑷姩娉ㄥ唽/鐧诲綍
+    # 自动注册/登录
     c = sqlite3.connect(DB)
     email = u.get('email') or (u['login']+'@github.local')
     r = c.execute('SELECT id,nick FROM users WHERE email=?',(email,)).fetchone()
@@ -128,7 +128,7 @@ def github_callback():
     session['uid']=r[0]; session['nick']=r[1]; session['avatar']=u.get('avatar_url','')
     return redirect('/')
 
-# 鏂囩珷 CRUD
+# 文章 CRUD
 @app.route('/api/posts')
 def list_posts():
     c = sqlite3.connect(DB)
@@ -149,7 +149,7 @@ def add_post():
     d = request.json
     c = sqlite3.connect(DB)
     c.execute('INSERT INTO posts(uid,title,cat,content,excerpt,date) VALUES(?,?,?,?,?,?)',
-              (1,d['title'],d.get('cat','榛樿'),d['content'],d.get('excerpt',''),datetime.now().strftime('%Y-%m-%d')))
+              (1,d['title'],d.get('cat','默认'),d['content'],d.get('excerpt',''),datetime.now().strftime('%Y-%m-%d')))
     c.commit(); c.close()
     return jsonify(ok=True)
 
@@ -165,7 +165,7 @@ def update_post(pid):
     d = request.json
     c = sqlite3.connect(DB)
     c.execute('UPDATE posts SET title=?,cat=?,content=?,excerpt=? WHERE id=?',
-              (d['title'],d.get('cat','榛樿'),d['content'],d.get('excerpt',''),pid))
+              (d['title'],d.get('cat','默认'),d['content'],d.get('excerpt',''),pid))
     c.commit(); c.close()
     return jsonify(ok=True)
 
@@ -200,7 +200,7 @@ def del_moment(mid):
     c.commit(); c.close()
     return jsonify(ok=True)
 
-# 璇勮
+# 评论
 @app.route('/api/comments/<ttype>/<tid>')
 def get_comments(ttype,tid):
     c = sqlite3.connect(DB)
@@ -214,11 +214,11 @@ def add_comment():
     d = request.json
     c = sqlite3.connect(DB)
     c.execute('INSERT INTO comments(target_type,target_id,nick,avatar,content,date) VALUES(?,?,?,?,?,?)',
-              (d['ttype'],d['tid'],session.get('nick','寰厜'),session.get('avatar',''),d['content'],datetime.now().strftime('%Y-%m-%d %H:%M')))
+              (d['ttype'],d['tid'],session.get('nick','微光'),session.get('avatar',''),d['content'],datetime.now().strftime('%Y-%m-%d %H:%M')))
     c.commit(); c.close()
     return jsonify(ok=True)
 
-# 椤甸潰璺敱
+# 页面路由
 # GitHub API proxy (CORS fix) - universal proxy
 @app.route('/api/github-proxy')
 def github_proxy():
@@ -256,23 +256,37 @@ def github_readme(repo):
         except: pass
     return app.response_class('# no README', mimetype='text/plain; charset=utf-8')
 
+# 页面路由
 @app.route('/')
 def home(): return send_from_directory(BASE,'index.html')
+
+@app.route('/blog.html')
+def blog(): return send_from_directory(BASE,'blog.html')
+
+@app.route('/projects.html')
+def projects(): return send_from_directory(BASE,'projects.html')
+
+@app.route('/personal.html')
+def personal(): return send_from_directory(BASE,'personal.html')
+
+@app.route('/space.html')
+def space(): return send_from_directory(BASE,'space.html')
 
 if __name__ == '__main__':
     import subprocess, time, urllib.request, json, os
     if os.name == 'nt':
         ngrok_path = r'C:\ngrok\ngrok.exe'
-        subprocess.Popen([ngrok_path, 'http', '5000'], creationflags=0x08000000)
-        print('姝ｅ湪鍚姩 ngrok...')
-        time.sleep(5)
-        pub_url = ''
-        for _ in range(5):
-            try:
-                with urllib.request.urlopen('http://127.0.0.1:4040/api/tunnels') as r:
-                    data = json.loads(r.read())
-                    pub_url = data['tunnels'][0]['public_url']
-                    break
-            except: time.sleep(1)
-        print(f'鍏綉: {pub_url}')
+        if os.path.exists(ngrok_path):
+            subprocess.Popen([ngrok_path, 'http', '5000'], creationflags=0x08000000)
+            print('正在启动 ngrok...')
+            time.sleep(5)
+            pub_url = ''
+            for _ in range(5):
+                try:
+                    with urllib.request.urlopen('http://127.0.0.1:4040/api/tunnels') as r:
+                        data = json.loads(r.read())
+                        pub_url = data['tunnels'][0]['public_url']
+                        break
+                except: time.sleep(1)
+            print(f'公网地址: {pub_url}')
     app.run(host='0.0.0.0', port=5000, debug=True)
